@@ -1,33 +1,89 @@
 const Department = require('../models/Department');
 const Ticket = require("../Models/Ticket");
+const cron = require('node-cron');
+const nodemailer = require('nodemailer');
+const moment = require('moment');
 
 const createTicket = async (req, res) => {
     try {
-        const { department, createdBy, assignedTo, status, priority, description } = req.body;
-
-        const departmentObj = await Department.findById(department);
-
-        if (!departmentObj) {
-            return res.status(404).json({ success: false, error: 'Department not found' });
+      const { department, createdBy, assignedTo, status, priority, description } = req.body;
+  
+      const departmentObj = await Department.findById(department);
+  
+      if (!departmentObj) {
+        return res.status(404).json({ success: false, error: 'Department not found' });
+      }
+  
+      const ticket = new Ticket({
+        department,
+        createdBy,
+        assignedTo,
+        status,
+        priority,
+        description,
+      });
+  
+      const newTicket = await ticket.save();
+      console.log(newTicket);
+  
+      cron.schedule('0 12 * * *', async () => {
+        try {
+          // Calculate the date two days ago.
+          const twoDaysAgo = moment().subtract(2, 'days');
+  
+          // Find the tickets that are in "in_progress" state and created two or more days ago.
+          const ticketsInProgress = await Ticket.find({
+            status: 'in_progress',
+            createdDate: { $lte: twoDaysAgo.toDate() },
+          }).populate('department');
+  
+          // If there are any tickets, send an email.
+          if (ticketsInProgress.length > 0) {
+            const transporter = nodemailer.createTransport({
+              service: 'gmail',
+              auth: {
+                user: 'example@gmail.com', // Sender account details
+                pass: 'password',
+              },
+            });
+  
+            const mailOptions = {
+              from: 'example@gmail.com',
+              to: 'recipient@example.com', // Recipient address
+              subject: 'Warning: Tickets are still in "in_progress" state',
+              html: `
+                <p>Hello,</p>
+                <p>The following tickets are still in "in_progress" state and have not been completed for more than two days:</p>
+                <ul>
+                  ${ticketsInProgress.map(ticket => `
+                    <li>
+                      <strong>Department:</strong> ${ticket.department.name}<br>
+                      <strong>Created By:</strong> ${ticket.createdBy}<br>
+                      <strong>Description:</strong> ${ticket.description}<br>
+                      <strong>Created Date:</strong> ${moment().format('DD.MM.YYYY hh:mm:ss')}
+                    </li>
+                  `).join('')}
+                </ul>
+                <p>Please check these tickets and take necessary actions.</p>
+                <p>Have a good day!</p>
+              `,
+            };
+  
+            const info = await transporter.sendMail(mailOptions);
+            console.log(`Message sent: ${info.messageId}`);
+          }
+        } catch (err) {
+          console.error(err);
         }
-
-        const ticket = new Ticket({
-            department,
-            createdBy,
-            assignedTo,
-            status,
-            priority,
-            description,
-        });
-
-        const newTicket = await ticket.save();
-        console.log(newTicket);
-        res.status(201).json({ success: true, data: newTicket });
+      });
+  
+      res.status(201).json({ success: true, data: newTicket });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, error: 'Server Error' });
+      console.error(err);
+      res.status(500).json({ success: false, error: 'Server Error' });
     }
-};
+  };
+  
 const updateTicket = async (req, res) => {
     try {
         const { id } = req.params;
@@ -212,6 +268,8 @@ const deleteTicketComment = async (req, res) => {
         res.status(500).json({ success: false, error: 'Server Error' });
     }
 };
+
+
 module.exports = {
     createTicket,
     getTicketsByDepartmentId,
