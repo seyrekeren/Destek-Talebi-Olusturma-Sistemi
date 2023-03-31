@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {authMiddleware, checkManagerRole } = require('../middlewares/roleMiddleware');
-const {createTicket, getTicketsByDepartmentId, updateTicket, deleteTicket, assignTicket, unassignTicket,  deleteTicketComment, updateTicketComment, addTicketComment, getTicketComments} = require('../controllers/ticketController');
+const {createTicket, getTicketsByDepartmentId, updateTicket, deleteTicket, assignTicket, unassignTicket, deleteTicketComment, updateTicketComment, addTicketComment, getTicketComments} = require('../controllers/ticketController');
 
 router.post('/tickets/department', createTicket);
 router.get('/:departmentId/tickets', getTicketsByDepartmentId);//tam çalışmıyor kontrol et -artık çalışıyor sunumdan önce kontrol et genede sıkıntılı //comments alanı önemli
