@@ -1,8 +1,5 @@
 const Department = require('../models/Department');
 const Ticket = require("../Models/Ticket");
-const cron = require('node-cron');
-const nodemailer = require('nodemailer');
-const moment = require('moment');
 
 const createTicket = async (req, res) => {
     try {

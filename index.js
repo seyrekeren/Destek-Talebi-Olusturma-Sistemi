@@ -5,7 +5,7 @@ const companyRoutes = require('./routes/companyRoutes');
 const departmentRoutes = require('./routes/departmentRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
 const authRoutes = require('./routes/authRoutes');
-const {cronJob} = require('./CronJob/cronJobs');
+const {ticketInProgressWarning, deleteFinishedTickets} = require('./CronJob/cronJobs');
 require('dotenv').config()
 
 const app = express();
@@ -22,4 +22,5 @@ app.use('/', departmentRoutes);
 app.use('/', ticketRoutes);
 app.use('/', authRoutes);
 
-cronJob.start();
+ticketInProgressWarning.start();
+deleteFinishedTickets.start();

@@ -3,7 +3,7 @@ const cron = require('node-cron');
 const moment = require('moment');
 const nodemailer = require('nodemailer');
 
-const cronJob = cron.schedule('0 12 * * *', async () => {
+const ticketInProgressWarning = cron.schedule('0 12 * * *', async () => {
   try {
     // İki gün önceki tarihi hesapla.
     const twoDaysAgo = moment().subtract(2, 'days');
@@ -49,6 +49,23 @@ const cronJob = cron.schedule('0 12 * * *', async () => {
       const info = await transporter.sendMail(mailOptions);
       console.log(`Mesaj gönderildi: ${info.messageId}`);
     }
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+const deleteFinishedTickets = cron.schedule('0 */6 * * *', async () => {
+  try {
+    const tickets = await Ticket.find({ status: 'finish' });
+
+    if (tickets.length === 0) {
+      console.log('No finished tickets found');
+      return;
+    }
+
+    const deletedTickets = await Ticket.deleteMany({ status: 'finish' });
+
+    console.log(`${deletedTickets.deletedCount} finished tickets deleted successfully`);
   } catch (err) {
     console.error(err);
   }
@@ -105,4 +122,4 @@ const cronJob2 = cron.schedule('* * * * *', async () => {
     }
   });
   */
-module.exports = {cronJob, }
+module.exports = {ticketInProgressWarning, deleteFinishedTickets}

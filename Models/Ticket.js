@@ -5,7 +5,7 @@ const TicketSchema = new mongoose.Schema({
     department: { type: mongoose.Schema.Types.ObjectId, ref: 'Department', required: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref:'User', required: true },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref:'User' },
-    status: { type: String, enum: ['open', 'in_progress', 'closed'], default: 'open' },
+    status: { type: String, enum: ['open', 'in_progress', 'finish'], default: 'open' },
     priority: { type: String, enum: ['low', 'medium', 'high'], default: 'low' },
     description: { type: String, required: true },
     comments: [{
