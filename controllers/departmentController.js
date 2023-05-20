@@ -5,7 +5,6 @@ const Ticket = require("../Models/Ticket");
 const getAllDepartments = async (req, res) => {
   try {
     const departments = await Company.findById(req.params.companyId).populate('departments')
-    //const departments = await Department.find({ company: req.params.companyId }, { name: 1, _id: 0 });
     res.status(200).json(departments);
   } catch (error) {
     res.status(500).json({ message: error.message });
